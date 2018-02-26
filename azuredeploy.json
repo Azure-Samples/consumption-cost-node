@@ -1,0 +1,187 @@
+{
+    "$schema": "http://schemas.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the function app that you wish to create."
+            }
+        },
+        "storageAccountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_ZRS",
+                "Premium_LRS"
+            ],
+            "metadata": {
+                "description": "Storage Account type"
+            }
+        },
+        "repoURL": {
+            "type": "string",
+            "defaultValue": "https://github.com/Azure-Samples/consumption-cost-node.git",
+            "metadata": {
+                "description": "Repo URL"
+            }
+        },
+        "branch": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "Repo branch"
+            }
+        },
+        "manualIntegration": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Use 'true' if you are deploying from the base repo, 'false' if you are deploying from your own fork. If you're using 'false', make sure you have admin permissions to the repo."
+            }
+        },
+        "clientId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Service principal Id"
+            }
+        },
+        "clientSecret": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Service principal Secret"
+            }
+        },
+        "tenantId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Tenant Id"
+            }
+        },
+        "offerId": {
+            "type": "string",
+            "defaultValue": "MS-AZR-0003P",
+            "allowedValues": [
+                "MS-AZR-0003P",
+                "MS-AZR-0059P",
+                "MS-AZR-0062P",
+                "MS-AZR-0063P",
+                "MS-AZR-0064P",
+                "MS-AZR-0025P",
+                "MS-AZR-0015P"
+            ],
+            "metadata": {
+                "description": "Your offer type. More details here: https://azure.microsoft.com/en-us/support/legal/offer-details/"
+            }
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Your subscription Id"
+            }
+        }        
+    },
+    "variables": {
+        "functionAppName": "[parameters('appName')]",
+        "hostingPlanName": "[parameters('appName')]",
+        "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'azfunctions')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageAccountName')]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "[parameters('storageAccountType')]"
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2015-04-01",
+            "name": "[variables('hostingPlanName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "[variables('hostingPlanName')]",
+                "computeMode": "Dynamic",
+                "sku": "Dynamic"
+            }
+        },
+        {
+            "apiVersion": "2015-08-01",
+            "type": "Microsoft.Web/sites",
+            "name": "[variables('functionAppName')]",
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp",
+            "properties": {
+                "name": "[variables('functionAppName')]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name":"AzureWebJobsStorage",
+                            "value":"[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]"
+                        },
+                        {
+                            "name":"AzureWebJobsDashboard",
+                            "value":"[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]"
+                        },
+                        {
+                            "name":"clientId",
+                            "value":"[parameters('clientId')]"
+                        },
+                        {
+                            "name":"clientSecret",
+                            "value":"[parameters('clientSecret')]"
+                        },
+                        {
+                            "name":"tenantId",
+                            "value":"[parameters('tenantId')]"
+                        },
+                        {
+                            "name":"offerId",
+                            "value":"[parameters('offerId')]"
+                        },
+                        {
+                            "name":"subscriptionId",
+                            "value":"[parameters('subscriptionId')]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~1"
+                        },
+                        {
+                            "name": "WEBSITE_NODE_DEFAULT_VERSION",
+                            "value": "6.5.0"
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "resources": [
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "web",
+                    "type": "sourcecontrols",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites/', parameters('appName'))]"
+                    ],
+                    "properties": {
+                        "RepoUrl": "[parameters('repoUrl')]",
+                        "branch": "[parameters('branch')]",
+                        "IsManualIntegration": "[parameters('manualIntegration')]"
+                    }
+                }                
+            ]
+        }
+    ]
+}
