@@ -1,0 +1,10 @@
+{
+	"version": "1.0.0",
+	"name": "BillingCost-Node",
+	"private": true,
+	"dependencies": {
+		"ms-rest-azure": "2.5.0",
+		"azure-arm-commerce": "1.1.0",
+		"json2csv":"3.11.5"
+	}
+}
