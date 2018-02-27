@@ -1,7 +1,7 @@
 ---
 services: app-service, functions
 platforms: nodejs
-author: ityer
+author: itye-msft
 ---
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Fconsumption-cost-node%2Fmaster%2Fazuredeploy.json)
 
