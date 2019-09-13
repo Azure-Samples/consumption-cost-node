@@ -1,8 +1,13 @@
 ---
-services: app-service, functions
-platforms: nodejs
-author: itye-msft
+page_type: sample
+languages:
+- javascript
+products:
+- azure
+description: "On-demand calculation of Azure consumption cost"
+urlFragment: consumption-cost-node
 ---
+
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Fconsumption-cost-node%2Fmaster%2Fazuredeploy.json)
 
 # On-demand calculation of Azure consumption cost
